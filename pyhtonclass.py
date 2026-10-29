@@ -1,66 +1,71 @@
-"""
-CLI Menu Loop - a small item manager.
-Data structure: Python list
-Algorithms: traversal (List), linear search (Search), removal (Delete)
-"""
+import json
+import os
 
-items = []  # our "notebook": starts empty
+class TaskList:
+    def __init__(self, filename="tasks.json"):
+        self.filename = filename
+        self.tasks = []
+        
+        # Automatically try to load tasks when the program starts
+        if os.path.exists(self.filename):
+            self.load()
 
-while True:  # keeps showing the menu until the user chooses Exit
-    print("\n--- Menu ---")
-    print("1. Add")
-    print("2. List")
-    print("3. Count")
-    print("4. Search")
-    print("5. Delete")
-    print("6. Exit")
+    def add_task(self, task):
+        self.tasks.append(task)
+        print(f"✅ Added: '{task}'")
 
-    choice = input("Enter your choice: ").strip()
+    def save(self):
+        # Save the list of tasks to a JSON file
+        with open(self.filename, "w") as file:
+            json.dump(self.tasks, file)
+        print("💾 Tasks saved successfully!")
 
-    if choice == "1":
-        new_item = input("Enter an item to add: ").strip().lower()
-        if new_item == "":
-            print("Item cannot be empty.")
-        elif new_item in items:
-            print(f"'{new_item}' is already in the list.")
+    def load(self):
+        # Load the list of tasks from the JSON file
+        try:
+            with open(self.filename, "r") as file:
+                self.tasks = json.load(file)
+            print("📂 Tasks loaded successfully!")
+        except FileNotFoundError:
+            print("⚠️ No saved file found. Starting with an empty list.")
+            self.tasks = []
+
+    def show_tasks(self):
+        if not self.tasks:
+            print("\n📝 Your to-do list is currently empty.")
         else:
-            items.append(new_item)  # O(1): writes at the end
-            print(f"Added: {new_item}")
+            print("\n--- Your To-Do List ---")
+            for i, task in enumerate(self.tasks, 1):
+                print(f"{i}. {task}")
+            print("-----------------------\n")
 
-    elif choice == "2":
-        if not items:
-            print("No items in the list.")
+def main():
+    my_tasks = TaskList()
+
+    while True:
+        print("\n--- MENU ---")
+        print("1. Add a task")
+        print("2. Show tasks")
+        print("3. Save tasks")
+        print("4. Load tasks")
+        print("5. Exit")
+        
+        choice = input("Choose an option (1-5): ")
+
+        if choice == '1':
+            task = input("Enter the task: ")
+            my_tasks.add_task(task)
+        elif choice == '2':
+            my_tasks.show_tasks()
+        elif choice == '3':
+            my_tasks.save()
+        elif choice == '4':
+            my_tasks.load()
+        elif choice == '5':
+            print("Goodbye!")
+            break
         else:
-            for number, name in enumerate(items, start=1):  # traversal: O(n)
-                print(f"{number}. {name}")
+            print("❌ Invalid choice. Please try again.")
 
-    elif choice == "3":
-        print(f"Total items: {len(items)}")  # O(1)
-
-    elif choice == "4":
-        target = input("Search for: ").strip().lower()
-        found = False
-        checks = 0
-        for number, name in enumerate(items, start=1):  # linear search: O(n)
-            checks += 1
-            if name == target:
-                print(f"Found '{target}' at position {number} after {checks} check(s).")
-                found = True
-                break  # stop early, no need to keep looking
-        if not found:
-            print(f"'{target}' not found after {checks} check(s).")
-
-    elif choice == "5":
-        target = input("Enter item to delete: ").strip().lower()
-        if target in items:
-            items.remove(target)
-            print(f"Deleted: {target}")
-        else:
-            print(f"'{target}' not found.")
-
-    elif choice == "6":
-        print("Goodbye!")
-        break  # leaves the while loop, so the program ends
-
-    else:
-        print("Invalid choice. Please try again.")
+if __name__ == "__main__":
+    main()
